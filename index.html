@@ -1,1 +1,68 @@
-nothing on it
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="实时显示 UTC+8 时间的极简时钟。">
+  <title>UTC+8 时钟</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: #000; }
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    main { width: 100%; padding: 24px; text-align: center; }
+    .clock {
+      display: block;
+      font-size: clamp(40px, 12vw, 144px);
+      font-weight: 300;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+      letter-spacing: 0.025em;
+      white-space: nowrap;
+    }
+    .zone { margin: 20px 0 0; color: #888; font-size: 14px; letter-spacing: 0.2em; }
+    noscript { display: block; margin-top: 24px; color: #aaa; }
+  </style>
+</head>
+<body>
+  <main aria-label="UTC+8 实时时钟">
+    <time class="clock" id="clock" role="timer" aria-label="UTC+8 当前时间">--:--:--</time>
+    <p class="zone">UTC+8</p>
+    <noscript>请启用 JavaScript 以显示实时时间。</noscript>
+  </main>
+  <script>
+    const clock = document.getElementById('clock');
+    // 使用设备当前时间，固定转换为 UTC+8，不受访客所在时区影响。
+    const formatter = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Etc/GMT-8',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23'
+    });
+
+    let timer;
+    function updateClock() {
+      clearTimeout(timer);
+      const now = new Date();
+      clock.textContent = formatter.format(now);
+      clock.dateTime = now.toISOString();
+      // 每次根据当前时间计算刷新时机，避免累计计时误差。
+      timer = setTimeout(updateClock, 1000 - (Date.now() % 1000));
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) clearTimeout(timer);
+      else updateClock();
+    });
+    updateClock();
+  </script>
+</body>
+</html>
